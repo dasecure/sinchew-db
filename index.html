@@ -17,7 +17,8 @@
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--dark);font-size:14px;line-height:1.5}
 .topbar{height:56px;background:var(--blue);display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.brand{display:flex;align-items:center;gap:10px;color:white;font-size:16px;font-weight:600}
+.brand{display:flex;align-items:center;gap:10px;color:white;font-size:16px;font-weight:600;cursor:pointer;user-select:none}
+.brand:hover{opacity:.85}
 .brand-icon{width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
 .topbar-spacer{flex:1}
 .notif-btn{position:relative;width:38px;height:38px;background:rgba(255,255,255,.15);border:none;border-radius:8px;cursor:pointer;color:white;font-size:18px;display:flex;align-items:center;justify-content:center}
@@ -156,7 +157,9 @@ tr:hover td{background:#fafafa}
 </head>
 <body>
 <div class="topbar">
-  <div class="brand"><div class="brand-icon">🔒</div>SecureBase CRM</div>
+  <div class="brand" onclick="goHome()" title="Go to Dashboard">
+    <div class="brand-icon">🔒</div>SecureBase CRM
+  </div>
   <div class="topbar-spacer"></div>
   <button class="notif-btn" onclick="toggleNotif()" id="notif-btn">🔔<div class="notif-badge">5</div></button>
   <div class="user-pill"><div class="user-avatar">WL</div>William Lim</div>
@@ -175,19 +178,19 @@ tr:hover td{background:#fafafa}
   <div class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Main</div>
-      <div class="nav-item active" onclick="navTo(this,'dashboard')"><div class="nav-icon">📊</div>Dashboard</div>
-      <div class="nav-item" onclick="navTo(this,'customers')"><div class="nav-icon">👥</div>Customers</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="navTo(this,'dashboard')"><div class="nav-icon">📊</div>Dashboard</div>
+      <div class="nav-item" id="nav-customers" onclick="navTo(this,'customers')"><div class="nav-icon">👥</div>Customers</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Operations</div>
-      <div class="nav-item" onclick="navTo(this,'notifications')"><div class="nav-icon">🔔</div>Alerts<span class="nav-count">5</span></div>
-      <div class="nav-item" onclick="navTo(this,'appointments')"><div class="nav-icon">📅</div>Appointments</div>
-      <div class="nav-item" onclick="navTo(this,'service-jobs')"><div class="nav-icon">🔧</div>Service Jobs<span class="nav-count">2</span></div>
-      <div class="nav-item" onclick="navTo(this,'payments')"><div class="nav-icon">💳</div>Payments</div>
+      <div class="nav-item" id="nav-notifications" onclick="navTo(this,'notifications')"><div class="nav-icon">🔔</div>Alerts<span class="nav-count">5</span></div>
+      <div class="nav-item" id="nav-appointments" onclick="navTo(this,'appointments')"><div class="nav-icon">📅</div>Appointments</div>
+      <div class="nav-item" id="nav-service-jobs" onclick="navTo(this,'service-jobs')"><div class="nav-icon">🔧</div>Service Jobs<span class="nav-count">2</span></div>
+      <div class="nav-item" id="nav-payments" onclick="navTo(this,'payments')"><div class="nav-icon">💳</div>Payments</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Admin</div>
-      <div class="nav-item" onclick="navTo(this,'blacklist')"><div class="nav-icon">🚫</div>Blacklist<span class="nav-count">1</span></div>
+      <div class="nav-item" id="nav-blacklist" onclick="navTo(this,'blacklist')"><div class="nav-icon">🚫</div>Blacklist<span class="nav-count">1</span></div>
     </div>
   </div>
   <div class="main">
@@ -311,7 +314,12 @@ function openCustomer(id){
     <div class="dtab-panel" id="dp-svc"><div class="svc-add-btn"><span style="font-size:13px;color:var(--muted)">Service history</span><button class="btn btn-primary btn-sm">+ Log Visit</button></div><div class="info-card"><div class="svc-timeline">${r.svcStatus==='overdue'?'<div class="svc-item"><div class="svc-dot amber"></div><div><div class="svc-title">Routine maintenance overdue</div><div class="svc-date">Due 15 Apr 2025 · Not yet completed</div></div></div>':''}${r.svcStatus==='inprogress'?'<div class="svc-item"><div class="svc-dot blue"></div><div><div class="svc-title">Defect rectification — biometric reader</div><div class="svc-date">In progress · Raj · Visit: 1 May 2025</div></div></div>':''}<div class="svc-item"><div class="svc-dot green"></div><div><div class="svc-title">Initial installation & commissioning</div><div class="svc-date">${r.date}</div><div class="svc-desc">${r.system} — installed successfully.</div></div></div></div></div></div>
     <div class="dtab-panel" id="dp-wrt"><div class="${wC}"><div class="w-title">${wT}</div><div class="w-dates"><div><div class="w-lbl">Installation</div><div class="w-val">${r.date}</div></div><div><div class="w-lbl">Expiry</div><div class="w-val">${r.warrantyExp}</div></div><div><div class="w-lbl">Days left</div><div class="w-val">${r.warrantyDays>0?r.warrantyDays+' days':'Expired'}</div></div></div></div>${r.warrantyDays<=60&&r.warrantyDays>0?'<div style="background:var(--amber-pale);border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;font-size:12px;color:#92400e;margin-top:12px">⚠ Expiring soon — consider sending a maintenance quote.</div>':''}</div>`;
   showView('detail');
-  const nav=document.querySelector('.nav-item.active');if(nav)nav.classList.remove('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+}
+function goHome(){
+  showView('dashboard');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-dashboard').classList.add('active');
 }
 function switchDTab(btn,id){document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.dtab-panel').forEach(p=>p.classList.remove('on'));btn.classList.add('on');document.getElementById('dp-'+id).classList.add('on');}
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');}
