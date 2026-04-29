@@ -67,7 +67,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .search-wrap input:focus{border-color:var(--blue)}
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
 .filter-chips{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.chip{padding:4px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--muted);cursor:pointer}
+.chip{padding:4px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--muted);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--blue);color:var(--blue)}
 .chip.on{background:var(--blue-pale);color:var(--blue);border-color:var(--blue)}
 .rec-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .15s;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;margin-bottom:8px}
 .rec-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(26,95,168,.08)}
@@ -130,7 +131,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .alert-days{font-size:12px;font-weight:600}
 .alert-days.red{color:var(--red)}.alert-days.amber{color:var(--amber)}.alert-days.blue{color:var(--blue)}
 .calendar-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px}
-.cal-day{background:white;border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer}
+.cal-day{background:white;border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.cal-day:hover{border-color:var(--blue)}
 .cal-day.today{border-color:var(--blue);background:var(--blue-pale)}
 .cal-day.has-appt{position:relative}
 .cal-day.has-appt::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--blue)}
@@ -147,9 +149,6 @@ th{background:var(--gray-pale);padding:10px 14px;text-align:left;font-size:12px;
 td{padding:11px 14px;border-bottom:1px solid var(--gray-pale);font-size:13px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafafa}
-.pay-status{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:500}
-.pay-status.paid{background:var(--green-pale);color:var(--green)}.pay-status.partial{background:var(--amber-pale);color:var(--amber)}
-.pay-status.overdue{background:var(--red-pale);color:var(--red)}
 .blacklist-warn{background:var(--red-pale);border:1px solid #fca5a5;border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px}
 .demo-notice{background:var(--amber-pale);border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:8px}
 @media(max-width:768px){.sidebar{display:none}.stats-grid{grid-template-columns:1fr 1fr}.info-grid{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}}
@@ -186,7 +185,6 @@ tr:hover td{background:#fafafa}
       <div class="nav-item" id="nav-notifications" onclick="navTo(this,'notifications')"><div class="nav-icon">🔔</div>Alerts<span class="nav-count">5</span></div>
       <div class="nav-item" id="nav-appointments" onclick="navTo(this,'appointments')"><div class="nav-icon">📅</div>Appointments</div>
       <div class="nav-item" id="nav-service-jobs" onclick="navTo(this,'service-jobs')"><div class="nav-icon">🔧</div>Service Jobs<span class="nav-count">2</span></div>
-      <div class="nav-item" id="nav-payments" onclick="navTo(this,'payments')"><div class="nav-icon">💳</div>Payments</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Admin</div>
@@ -195,6 +193,8 @@ tr:hover td{background:#fafafa}
   </div>
   <div class="main">
     <div class="demo-notice">🎯 <strong>Live Demo</strong> — SinChew Alarm Customer Database System. Click any record to explore.</div>
+
+    <!-- DASHBOARD -->
     <div class="view active" id="view-dashboard">
       <div class="page-header"><div class="page-title">Dashboard</div><div style="font-size:12px;color:var(--muted)">Wednesday, 29 April 2025</div></div>
       <div class="stats-grid">
@@ -215,16 +215,28 @@ tr:hover td{background:#fafafa}
         </div></div>
       </div>
     </div>
+
+    <!-- CUSTOMERS -->
     <div class="view" id="view-customers">
       <div class="page-header"><div class="page-title">Customers</div><button class="btn btn-primary">+ Add Customer</button></div>
-      <div class="search-row"><div class="search-wrap"><span class="search-icon">⌕</span><input type="text" placeholder="Search by name, phone, or address..." oninput="filterCustomers(this.value)"></div><button class="btn btn-ghost">Filters</button></div>
-      <div class="filter-chips"><span class="chip on">All</span><span class="chip">CCTV</span><span class="chip">Access Control</span><span class="chip">Intercom</span><span class="chip">GSM</span></div>
+      <div class="search-row"><div class="search-wrap"><span class="search-icon">⌕</span><input type="text" id="search-input" placeholder="Search by name, phone, or address..." oninput="applyFilters()"></div></div>
+      <div class="filter-chips" id="filter-chips">
+        <span class="chip on" data-filter="all" onclick="selectChip(this)">All</span>
+        <span class="chip" data-filter="cctv" onclick="selectChip(this)">CCTV</span>
+        <span class="chip" data-filter="access" onclick="selectChip(this)">Access Control</span>
+        <span class="chip" data-filter="intercom" onclick="selectChip(this)">Intercom</span>
+        <span class="chip" data-filter="gsm" onclick="selectChip(this)">GSM</span>
+      </div>
       <div id="customer-list"></div>
     </div>
+
+    <!-- CUSTOMER DETAIL -->
     <div class="view" id="view-detail">
       <button class="back-btn" onclick="showView('customers');navActive('customers')">← Back to Customers</button>
       <div id="detail-content"></div>
     </div>
+
+    <!-- ALERTS -->
     <div class="view" id="view-notifications">
       <div class="page-header"><div class="page-title">Alerts & Reminders</div></div>
       <div class="notif-section"><div class="notif-section-title"><span style="color:var(--red)">●</span> Urgent (act now)</div>
@@ -240,6 +252,8 @@ tr:hover td{background:#fafafa}
         <div class="alert-card info" onclick="openCustomer(1)"><div class="alert-icon">📋</div><div><div class="alert-title">Warranty expiring — Shree Shivkrupan Foundation</div><div class="alert-sub">246 Macpherson Road · Soyal Reader · Expires 15 Jul 2025</div></div><div class="alert-right"><div class="alert-days blue">77 days</div></div></div>
       </div>
     </div>
+
+    <!-- APPOINTMENTS -->
     <div class="view" id="view-appointments">
       <div class="page-header"><div class="page-title">Appointments</div><button class="btn btn-primary">+ Book Appointment</button></div>
       <div class="calendar-strip">
@@ -257,29 +271,18 @@ tr:hover td{background:#fafafa}
         <div class="appt-card"><div class="appt-time-block"><div class="appt-time">09:30</div><div class="appt-date-s">Fri 2</div></div><div><div class="appt-detail-title">Iconiq Capital — GSM Module Check</div><div class="appt-detail-sub">18 Robinson Road #24-01, Singapore 048547</div><div class="tech-badge">👷 Ahmad (Technician)</div></div><div style="margin-left:auto"><span class="badge badge-green">Confirmed</span></div></div>
       </div>
     </div>
+
+    <!-- SERVICE JOBS -->
     <div class="view" id="view-service-jobs">
       <div class="page-header"><div class="page-title">Service Jobs</div><button class="btn btn-primary">+ New Job</button></div>
       <div class="table-wrap"><table><thead><tr><th>Job</th><th>Customer</th><th>System</th><th>Assigned</th><th>Due</th><th>Status</th></tr></thead><tbody>
-        <tr onclick="openCustomer(2)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0042</div><div style="font-size:11px;color:var(--muted)">Routine maintenance</div></td><td><div style="font-weight:500">Iconiq Capital</div><div style="font-size:11px;color:var(--muted)">18 Robinson Road</div></td><td>4G GSM Module</td><td>Ahmad</td><td><span style="color:var(--red);font-weight:500">15 Apr 2025</span></td><td><span class="pay-status overdue">⚠ Overdue</span></td></tr>
-        <tr onclick="openCustomer(3)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0043</div><div style="font-size:11px;color:var(--muted)">Installation defect</div></td><td><div style="font-weight:500">Best Technology</div><div style="font-size:11px;color:var(--muted)">Kaki Bukit Rd 1</div></td><td>Biometric / A/V Intercom</td><td>Raj</td><td>1 May 2025</td><td><span class="pay-status partial">In Progress</span></td></tr>
-        <tr onclick="openCustomer(0)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0041</div><div style="font-size:11px;color:var(--muted)">Warranty claim</div></td><td><div style="font-weight:500">Mr Ong B.K</div><div style="font-size:11px;color:var(--muted)">42 Chestnut Drive</div></td><td>Dahua 16-Ch CCTV</td><td>Ahmad</td><td>22 Apr 2025</td><td><span class="pay-status paid">Completed</span></td></tr>
+        <tr onclick="openCustomer(2)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0042</div><div style="font-size:11px;color:var(--muted)">Routine maintenance</div></td><td><div style="font-weight:500">Iconiq Capital</div><div style="font-size:11px;color:var(--muted)">18 Robinson Road</div></td><td>4G GSM Module</td><td>Ahmad</td><td><span style="color:var(--red);font-weight:500">15 Apr 2025</span></td><td><span class="badge badge-red">⚠ Overdue</span></td></tr>
+        <tr onclick="openCustomer(3)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0043</div><div style="font-size:11px;color:var(--muted)">Installation defect</div></td><td><div style="font-weight:500">Best Technology</div><div style="font-size:11px;color:var(--muted)">Kaki Bukit Rd 1</div></td><td>Biometric / A/V Intercom</td><td>Raj</td><td>1 May 2025</td><td><span class="badge badge-amber">In Progress</span></td></tr>
+        <tr onclick="openCustomer(0)" style="cursor:pointer"><td><div style="font-weight:500">#SVC-0041</div><div style="font-size:11px;color:var(--muted)">Warranty claim</div></td><td><div style="font-weight:500">Mr Ong B.K</div><div style="font-size:11px;color:var(--muted)">42 Chestnut Drive</div></td><td>Dahua 16-Ch CCTV</td><td>Ahmad</td><td>22 Apr 2025</td><td><span class="badge badge-green">Completed</span></td></tr>
       </tbody></table></div>
     </div>
-    <div class="view" id="view-payments">
-      <div class="page-header"><div class="page-title">Payment Status</div></div>
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card"><div class="stat-label">Collected</div><div class="stat-val">S$5,550</div><div class="stat-sub">3 invoices paid</div></div>
-        <div class="stat-card alert"><div class="stat-label">Outstanding</div><div class="stat-val">S$4,750</div><div class="stat-sub">2 unpaid</div></div>
-        <div class="stat-card"><div class="stat-label">Total Contracted</div><div class="stat-val">S$8,750</div><div class="stat-sub">5 projects</div></div>
-      </div>
-      <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Ref</th><th>System</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>
-        <tr onclick="openCustomer(0)" style="cursor:pointer"><td><div style="font-weight:500">Mr Ong B.K</div></td><td>0062/25</td><td>Dahua CCTV</td><td style="font-weight:500">S$1,800</td><td><span class="pay-status paid">✓ Paid</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
-        <tr onclick="openCustomer(1)" style="cursor:pointer"><td><div style="font-weight:500">Shree Shivkrupan Foundation</div></td><td>0069/25</td><td>Soyal Reader</td><td style="font-weight:500">S$900</td><td><span class="pay-status paid">✓ Paid</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
-        <tr onclick="openCustomer(2)" style="cursor:pointer"><td><div style="font-weight:500">Iconiq Capital (Singapore)</div></td><td>0013/25</td><td>4G GSM Module</td><td style="font-weight:500">S$850</td><td><span class="pay-status paid">✓ Paid</span></td><td><button class="btn btn-ghost btn-sm">View</button></td></tr>
-        <tr onclick="openCustomer(3)" style="cursor:pointer"><td><div style="font-weight:500">Best Technology Pte Ltd</div></td><td>1136/24</td><td>Biometric / Intercom</td><td style="font-weight:500">S$3,900</td><td><span class="pay-status overdue">⚠ Overdue</span></td><td><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();alert('Reminder sent!')">Send Reminder</button></td></tr>
-        <tr onclick="openCustomer(4)" style="cursor:pointer"><td><div style="font-weight:500">Mr Cheah</div></td><td>0465/25</td><td>Uniview DVR</td><td style="font-weight:500">S$1,300</td><td><span class="pay-status partial">⏳ Deposit</span></td><td><button class="btn btn-ghost btn-sm">Follow Up</button></td></tr>
-      </tbody></table></div>
-    </div>
+
+    <!-- BLACKLIST -->
     <div class="view" id="view-blacklist">
       <div class="page-header"><div class="page-title">Blacklisted Customers</div></div>
       <div class="blacklist-warn"><span style="font-size:18px">⚠️</span><div><div style="font-weight:500;font-size:13px;color:var(--red)">Blacklist active</div><div style="font-size:12px;color:var(--red);margin-top:2px">1 customer blacklisted. Staff will be alerted when accessed.</div></div></div>
@@ -289,33 +292,75 @@ tr:hover td{background:#fafafa}
 </div>
 <script>
 const customers=[
-  {id:0,init:'OB',name:'Mr Ong B.K',contact:'Mr Ong B.K',phone:'97596738',email:'bkong777@yahoo.com.sg',addr:'42 Chestnut Drive, Singapore 679292',site:'42 Chestnut Drive, Singapore 679292',system:'Replacement 16 Channel Dahua CCTV',sp:'AG',ref:'0062/25',date:'14 Jan 2025',value:'S$1,800',payment:'paid',warranty:'active',warrantyExp:'11 May 2025',warrantyDays:12,blacklist:false,svcStatus:'completed'},
-  {id:1,init:'SS',name:'Shree Shivkrupan Foundation',contact:'Ms Cynthia Toh',phone:'82998279',email:'cynthia@eerd.com.sg',addr:'246 Macpherson Road #02-04, Singapore 348578',site:'62-64 Waterloo Street (Hotel Dev)',system:'Replacement Soyal Access Reader',sp:'AG',ref:'0069/25',date:'15 Jan 2025',value:'S$900',payment:'paid',warranty:'expiring',warrantyExp:'15 Jul 2025',warrantyDays:77,blacklist:false,svcStatus:'none'},
-  {id:2,init:'IC',name:'Iconiq Capital (Singapore)',contact:'Mr Blake',phone:'64328806',email:'bwiedman@iconiqcapital.com',addr:'18 Robinson Road #24-01, Singapore 048547',site:'18 Robinson Road #24-01',system:'Replacement 4G GSM Module',sp:'AN',ref:'0013/25',date:'3 Jan 2025',value:'S$850',payment:'paid',warranty:'active',warrantyExp:'3 Jan 2026',warrantyDays:249,blacklist:false,svcStatus:'overdue'},
-  {id:3,init:'BT',name:'Best Technology Pte Ltd',contact:'Ms Serene',phone:'91880794',email:'serene@besttech.com.sg',addr:'5 Kaki Bukit Road 1 #03-03, Singapore 415936',site:'5 Kaki Bukit Road 1 #03-03 Eunos Technolink',system:'Biometric Face Recognition & A/V Intercom',sp:'AN',ref:'1136/24',date:'11 Feb 2025',value:'S$3,900',payment:'overdue',warranty:'active',warrantyExp:'11 Feb 2027',warrantyDays:653,blacklist:false,svcStatus:'inprogress'},
-  {id:4,init:'CH',name:'Mr Cheah',contact:'Mr Cheah',phone:'97833014',email:'—',addr:'53 Mackerrow Road, Singapore 358620',site:'53 Mackerrow Road, Singapore 358620',system:'Replacement Uniview Hybrid DVR',sp:'AN',ref:'0465/25',date:'12 Apr 2025',value:'S$1,300',payment:'partial',warranty:'active',warrantyExp:'12 Apr 2026',warrantyDays:348,blacklist:false,svcStatus:'pending'},
-  {id:5,init:'TH',name:'Tan Holdings Pte Ltd',contact:'Mr Tan',phone:'91234567',email:'tan@tanholdings.com.sg',addr:'22 Tanjong Pagar Road, Singapore 088443',site:'22 Tanjong Pagar Road',system:'16-Ch CCTV + Access Control',sp:'AG',ref:'0211/24',date:'8 Aug 2024',value:'S$2,400',payment:'overdue',warranty:'expired',warrantyExp:'8 Aug 2025',warrantyDays:-265,blacklist:true,svcStatus:'none'},
+  {id:0,init:'OB',name:'Mr Ong B.K',company:'',contact:'Mr Ong B.K',phone:'97596738',email:'bkong777@yahoo.com.sg',uen:'',addr:'42 Chestnut Drive, Singapore 679292',site:'42 Chestnut Drive, Singapore 679292',system:'Replacement 16 Channel Dahua CCTV',systemType:'cctv',sp:'AG',ref:'0062/25',date:'14 Jan 2025',value:'S$1,800',payment:'paid',warranty:'active',warrantyExp:'11 May 2025',warrantyDays:12,blacklist:false,svcStatus:'completed'},
+  {id:1,init:'SS',name:'Shree Shivkrupan Foundation',company:'Shree Shivkrupan Foundation',contact:'Ms Cynthia Toh',phone:'82998279',email:'cynthia@eerd.com.sg',uen:'T08SS0073B',addr:'246 Macpherson Road #02-04, Singapore 348578',site:'62-64 Waterloo Street (Hotel Dev)',system:'Replacement Soyal Access Reader',systemType:'access',sp:'AG',ref:'0069/25',date:'15 Jan 2025',value:'S$900',payment:'paid',warranty:'expiring',warrantyExp:'15 Jul 2025',warrantyDays:77,blacklist:false,svcStatus:'none'},
+  {id:2,init:'IC',name:'Iconiq Capital (Singapore)',company:'Iconiq Capital (Singapore) Pte Ltd',contact:'Mr Blake Wiedman',phone:'64328806',email:'bwiedman@iconiqcapital.com',uen:'201502345K',addr:'18 Robinson Road #24-01, Singapore 048547',site:'18 Robinson Road #24-01',system:'Replacement 4G GSM Module',systemType:'gsm',sp:'AN',ref:'0013/25',date:'3 Jan 2025',value:'S$850',payment:'paid',warranty:'active',warrantyExp:'3 Jan 2026',warrantyDays:249,blacklist:false,svcStatus:'overdue'},
+  {id:3,init:'BT',name:'Best Technology Pte Ltd',company:'Best Technology Pte Ltd',contact:'Ms Serene',phone:'91880794',email:'serene@besttech.com.sg',uen:'200812345D',addr:'5 Kaki Bukit Road 1 #03-03, Singapore 415936',site:'5 Kaki Bukit Road 1 #03-03 Eunos Technolink',system:'Biometric Face Recognition & A/V Intercom',systemType:'intercom',sp:'AN',ref:'1136/24',date:'11 Feb 2025',value:'S$3,900',payment:'overdue',warranty:'active',warrantyExp:'11 Feb 2027',warrantyDays:653,blacklist:false,svcStatus:'inprogress'},
+  {id:4,init:'CH',name:'Mr Cheah',company:'',contact:'Mr Cheah',phone:'97833014',email:'—',uen:'',addr:'53 Mackerrow Road, Singapore 358620',site:'53 Mackerrow Road, Singapore 358620',system:'Replacement Uniview Hybrid DVR',systemType:'cctv',sp:'AN',ref:'0465/25',date:'12 Apr 2025',value:'S$1,300',payment:'partial',warranty:'active',warrantyExp:'12 Apr 2026',warrantyDays:348,blacklist:false,svcStatus:'pending'},
+  {id:5,init:'TH',name:'Tan Holdings Pte Ltd',company:'Tan Holdings Pte Ltd',contact:'Mr Tan',phone:'91234567',email:'tan@tanholdings.com.sg',uen:'200312345A',addr:'22 Tanjong Pagar Road, Singapore 088443',site:'22 Tanjong Pagar Road',system:'16-Ch CCTV + Access Control',systemType:'cctv',sp:'AG',ref:'0211/24',date:'8 Aug 2024',value:'S$2,400',payment:'overdue',warranty:'expired',warrantyExp:'8 Aug 2025',warrantyDays:-265,blacklist:true,svcStatus:'none'},
 ];
+
+let activeFilter='all';
+let searchQuery='';
+
+function selectChip(el){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  activeFilter=el.dataset.filter;
+  applyFilters();
+}
+
+function applyFilters(){
+  searchQuery=document.getElementById('search-input').value.toLowerCase();
+  let list=customers.filter(r=>!r.blacklist);
+  if(activeFilter!=='all') list=list.filter(r=>r.systemType===activeFilter);
+  if(searchQuery) list=list.filter(r=>r.name.toLowerCase().includes(searchQuery)||r.phone.includes(searchQuery)||r.addr.toLowerCase().includes(searchQuery)||(r.company&&r.company.toLowerCase().includes(searchQuery)));
+  renderCustomers(list);
+}
+
 function payBadge(p){if(p==='paid')return'<span class="badge badge-green">✓ Paid</span>';if(p==='partial')return'<span class="badge badge-amber">Deposit</span>';if(p==='overdue')return'<span class="badge badge-red">⚠ Overdue</span>';return'<span class="badge badge-gray">Pending</span>';}
 function wBadge(w,d){if(w==='active'&&d>60)return'<span class="badge badge-green">Warranty Active</span>';if(w==='expiring'||d<=60&&d>0)return'<span class="badge badge-amber">Expiring Soon</span>';if(w==='expired'||d<=0)return'<span class="badge badge-red">Warranty Expired</span>';return'';}
 function svcBadge(s){if(s==='overdue')return'<span class="badge badge-red">Service Overdue</span>';if(s==='inprogress')return'<span class="badge badge-amber">Service In Progress</span>';if(s==='pending')return'<span class="badge badge-blue">Service Pending</span>';return'';}
-function renderCustomers(list){document.getElementById('customer-list').innerHTML=list.map(r=>`<div class="rec-card${r.blacklist?' blacklisted':''}" onclick="openCustomer(${r.id})"><div class="avatar${r.blacklist?' blacklist':''}">${r.init}</div><div><div class="rec-name">${r.name}${r.blacklist?' <span style="color:var(--red);font-size:12px">🚫</span>':''}</div><div class="rec-sub">${r.phone} · ${r.addr.substring(0,45)}...</div><div class="rec-tags"><span class="badge badge-gray">${r.sp}</span>${wBadge(r.warranty,r.warrantyDays)}${payBadge(r.payment)}${svcBadge(r.svcStatus)}</div></div><div class="rec-right"><div class="rec-value">${r.value}</div><div class="rec-date">${r.date}</div></div></div>`).join('');}
-function filterCustomers(q){const t=q.toLowerCase();renderCustomers(customers.filter(r=>r.name.toLowerCase().includes(t)||r.phone.includes(t)||r.addr.toLowerCase().includes(t)));}
+
+function renderCustomers(list){
+  const el=document.getElementById('customer-list');
+  if(list.length===0){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No customers found</div>';return;}
+  el.innerHTML=list.map(r=>`<div class="rec-card${r.blacklist?' blacklisted':''}" onclick="openCustomer(${r.id})"><div class="avatar${r.blacklist?' blacklist':''}">${r.init}</div><div><div class="rec-name">${r.name}${r.blacklist?' <span style="color:var(--red);font-size:12px">🚫</span>':''}</div><div class="rec-sub">${r.phone} · ${r.addr.substring(0,45)}...</div><div class="rec-tags"><span class="badge badge-gray">${r.sp}</span>${wBadge(r.warranty,r.warrantyDays)}${payBadge(r.payment)}${svcBadge(r.svcStatus)}</div></div><div class="rec-right"><div class="rec-value">${r.value}</div><div class="rec-date">${r.date}</div></div></div>`).join('');
+}
+
 function openCustomer(id){
   const r=customers[id];
   const wC=r.warranty==='expired'||r.warrantyDays<=0?'warranty-expired':r.warrantyDays<=60?'warranty-expiring':'warranty-active';
   const wT=r.warranty==='expired'||r.warrantyDays<=0?'⚠ Warranty Expired':r.warrantyDays<=60?'⚠ Warranty Expiring Soon':'✓ Warranty Active';
+  const companyRows=r.company?`<div class="info-row"><span class="info-lbl">Company</span><span class="info-val">${r.company}</span></div>${r.uen?`<div class="info-row"><span class="info-lbl">UEN</span><span class="info-val">${r.uen}</span></div>`:''}`:''
   document.getElementById('detail-content').innerHTML=`
     ${r.blacklist?'<div class="blacklist-warn"><span style="font-size:18px">🚫</span><div><div style="font-weight:600;color:var(--red)">Blacklisted Customer</div><div style="font-size:12px;color:var(--red)">Blacklisted for non-payment. Exercise caution.</div></div></div>':''}
     <div class="detail-hero"><div class="detail-avatar">${r.init}</div><div><div class="detail-name">${r.name}</div><div class="detail-contact">${r.contact} · ${r.phone} · ${r.email}</div><div class="detail-badges"><span class="badge badge-gray">${r.sp}</span><span class="badge badge-gray">${r.ref}</span>${wBadge(r.warranty,r.warrantyDays)}${payBadge(r.payment)}${svcBadge(r.svcStatus)}</div></div><div class="detail-hero-right"><div class="contract-val">${r.value}</div><div class="contract-lbl">Contract value</div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px"><button class="btn btn-ghost btn-sm">Edit</button><button class="btn btn-ghost btn-sm">Print</button></div></div></div>
     <div class="dtabs"><button class="dtab on" onclick="switchDTab(this,'ov')">Overview</button><button class="dtab" onclick="switchDTab(this,'docs')">Documents</button><button class="dtab" onclick="switchDTab(this,'svc')">Service History</button><button class="dtab" onclick="switchDTab(this,'wrt')">Warranty</button></div>
-    <div class="dtab-panel on" id="dp-ov"><div class="info-grid"><div class="info-card"><div class="info-card-title">Contact</div><div class="info-row"><span class="info-lbl">Name</span><span class="info-val">${r.contact}</span></div><div class="info-row"><span class="info-lbl">Phone</span><span class="info-val">${r.phone}</span></div><div class="info-row"><span class="info-lbl">Email</span><span class="info-val" style="font-size:11px">${r.email}</span></div><div class="info-row"><span class="info-lbl">Salesperson</span><span class="info-val">${r.sp}</span></div></div><div class="info-card"><div class="info-card-title">Project</div><div class="info-row"><span class="info-lbl">Reference</span><span class="info-val">${r.ref}</span></div><div class="info-row"><span class="info-lbl">Date</span><span class="info-val">${r.date}</span></div><div class="info-row"><span class="info-lbl">System</span><span class="info-val" style="font-size:11px">${r.system}</span></div><div class="info-row"><span class="info-lbl">Contract</span><span class="info-val">${r.value}</span></div></div><div class="info-card"><div class="info-card-title">Billing Address</div><div style="font-size:12px;line-height:1.7">${r.addr}</div></div><div class="info-card"><div class="info-card-title">Site Address</div><div style="font-size:12px;line-height:1.7">${r.site}</div></div></div></div>
+    <div class="dtab-panel on" id="dp-ov"><div class="info-grid">
+      <div class="info-card"><div class="info-card-title">Contact</div>
+        ${companyRows}
+        <div class="info-row"><span class="info-lbl">Contact Person</span><span class="info-val">${r.contact}</span></div>
+        <div class="info-row"><span class="info-lbl">Phone</span><span class="info-val">${r.phone}</span></div>
+        <div class="info-row"><span class="info-lbl">Email</span><span class="info-val" style="font-size:11px">${r.email}</span></div>
+        <div class="info-row"><span class="info-lbl">Salesperson</span><span class="info-val">${r.sp}</span></div>
+      </div>
+      <div class="info-card"><div class="info-card-title">Project</div>
+        <div class="info-row"><span class="info-lbl">Reference</span><span class="info-val">${r.ref}</span></div>
+        <div class="info-row"><span class="info-lbl">Date</span><span class="info-val">${r.date}</span></div>
+        <div class="info-row"><span class="info-lbl">System</span><span class="info-val" style="font-size:11px">${r.system}</span></div>
+        <div class="info-row"><span class="info-lbl">Contract</span><span class="info-val">${r.value}</span></div>
+      </div>
+      <div class="info-card"><div class="info-card-title">Billing Address</div><div style="font-size:12px;line-height:1.7">${r.addr}</div></div>
+      <div class="info-card"><div class="info-card-title">Site Address</div><div style="font-size:12px;line-height:1.7">${r.site}</div></div>
+    </div></div>
     <div class="dtab-panel" id="dp-docs"><div class="doc-grid"><div class="doc-card"><div class="doc-icon">📄</div><div><div class="doc-name">${r.ref.replace('/','_')}_WIP.pdf</div><div class="doc-meta">WIP · PDF · Attached</div></div></div><div class="doc-card"><div class="doc-icon">📋</div><div><div class="doc-name">${r.ref.replace('/','_')}_Quotation.pdf</div><div class="doc-meta">Confirmed quotation · PDF</div></div></div><div class="doc-upload">+ Attach drawings</div><div class="doc-upload">+ Attach CMS keyholder list</div><div class="doc-upload">+ Attach handover form</div><div class="doc-upload">+ Attach service form (ISMR)</div><div class="doc-upload">+ Attach invoice</div><div class="doc-upload">+ Other document</div></div></div>
     <div class="dtab-panel" id="dp-svc"><div class="svc-add-btn"><span style="font-size:13px;color:var(--muted)">Service history</span><button class="btn btn-primary btn-sm">+ Log Visit</button></div><div class="info-card"><div class="svc-timeline">${r.svcStatus==='overdue'?'<div class="svc-item"><div class="svc-dot amber"></div><div><div class="svc-title">Routine maintenance overdue</div><div class="svc-date">Due 15 Apr 2025 · Not yet completed</div></div></div>':''}${r.svcStatus==='inprogress'?'<div class="svc-item"><div class="svc-dot blue"></div><div><div class="svc-title">Defect rectification — biometric reader</div><div class="svc-date">In progress · Raj · Visit: 1 May 2025</div></div></div>':''}<div class="svc-item"><div class="svc-dot green"></div><div><div class="svc-title">Initial installation & commissioning</div><div class="svc-date">${r.date}</div><div class="svc-desc">${r.system} — installed successfully.</div></div></div></div></div></div>
     <div class="dtab-panel" id="dp-wrt"><div class="${wC}"><div class="w-title">${wT}</div><div class="w-dates"><div><div class="w-lbl">Installation</div><div class="w-val">${r.date}</div></div><div><div class="w-lbl">Expiry</div><div class="w-val">${r.warrantyExp}</div></div><div><div class="w-lbl">Days left</div><div class="w-val">${r.warrantyDays>0?r.warrantyDays+' days':'Expired'}</div></div></div></div>${r.warrantyDays<=60&&r.warrantyDays>0?'<div style="background:var(--amber-pale);border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;font-size:12px;color:#92400e;margin-top:12px">⚠ Expiring soon — consider sending a maintenance quote.</div>':''}</div>`;
   showView('detail');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
 }
+
 function goHome(){
   showView('dashboard');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -323,11 +368,11 @@ function goHome(){
 }
 function switchDTab(btn,id){document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.dtab-panel').forEach(p=>p.classList.remove('on'));btn.classList.add('on');document.getElementById('dp-'+id).classList.add('on');}
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');}
-function navTo(el,name){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');showView(name);if(name==='customers')renderCustomers(customers);}
+function navTo(el,name){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');showView(name);if(name==='customers')applyFilters();}
 function navActive(name){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(i=>{if(i.textContent.trim().toLowerCase().startsWith(name.substring(0,4)))i.classList.add('active')});}
 function toggleNotif(){document.getElementById('notif-panel').classList.toggle('open');}
 document.addEventListener('click',function(e){const p=document.getElementById('notif-panel');const b=document.getElementById('notif-btn');if(p.classList.contains('open')&&!p.contains(e.target)&&!b.contains(e.target))p.classList.remove('open');});
-renderCustomers(customers);
+applyFilters();
 </script>
 </body>
 </html>
